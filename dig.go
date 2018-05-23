@@ -21,9 +21,11 @@
 package dig
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"math/rand"
+	"os"
 	"reflect"
 	"sort"
 	"strconv"
@@ -421,6 +423,32 @@ func (c *Container) findAndValidateResults(n *node) (map[key]struct{}, error) {
 		keys[k] = struct{}{}
 	}
 	return keys, nil
+}
+
+// Write writes the dependency graph into the file specified in the path
+// argument in DOT format
+func (c *Container) Write(path string) error {
+	var output bytes.Buffer
+	output.WriteString("digraph G {\n")
+
+	for _, edge := range c.dotgraph {
+		output.WriteString("\t")
+		output.WriteString(edge.result.Type)
+		output.WriteString(" -> ")
+		output.WriteString(edge.param.Type)
+		output.WriteString(";\n")
+	}
+
+	output.WriteString("}\n")
+
+	f, err := os.Create(path)
+	if err != nil {
+		return fmt.Errorf("error creating output DOT graph %v", path)
+	}
+	defer f.Close()
+	fmt.Fprintf(f, output.String())
+
+	return nil
 }
 
 // Visits the results of a node and compiles a collection of all the keys

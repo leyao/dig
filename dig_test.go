@@ -2662,4 +2662,68 @@ func TestDotGraph(t *testing.T) {
 		c.Provide(func(i in) T4 { return T4{} })
 		assert.Equal(t, expected, c.dotgraph)
 	})
+
+	t.Run("write to file with empty dotgraph", func(t *testing.T) {
+		var expected = "digraph G {\n}\n"
+		outputPath := "temp-graph.txt"
+
+		c := New()
+		c.Write(outputPath)
+		defer os.Remove(outputPath)
+
+		actual, _ := ioutil.ReadFile(outputPath)
+		assert.Equal(t, expected, string(actual))
+	})
+
+	t.Run("write graph to file", func(t *testing.T) {
+		var expected = `digraph G {
+	r1 -> p1;
+	r2 -> p2;
+	r3 -> p3;
+}
+`
+		outputPath := "temp-graph.txt"
+		c := New()
+
+		c.dotgraph = []graphEdge{
+			{param: graphNode{Type: "p1"}, result: graphNode{Type: "r1"}},
+			{param: graphNode{Type: "p2"}, result: graphNode{Type: "r2"}},
+			{param: graphNode{Type: "p3"}, result: graphNode{Type: "r3"}},
+		}
+		c.Write(outputPath)
+		defer os.Remove(outputPath)
+
+		actual, _ := ioutil.ReadFile(outputPath)
+		assert.Equal(t, expected, string(actual))
+	})
+
+	t.Run("write complicated graph to file", func(t *testing.T) {
+		var expected = `digraph G {
+	n1 -> n2;
+	n1 -> n3;
+	n3 -> n4;
+	n3 -> n5;
+	n4 -> n5;
+	n1 -> n6;
+	n5 -> n6;
+}
+`
+		outputPath := "temp-graph.txt"
+		c := New()
+
+		c.dotgraph = []graphEdge{
+			{param: graphNode{Type: "n2"}, result: graphNode{Type: "n1"}},
+			{param: graphNode{Type: "n3"}, result: graphNode{Type: "n1"}},
+			{param: graphNode{Type: "n4"}, result: graphNode{Type: "n3"}},
+			{param: graphNode{Type: "n5"}, result: graphNode{Type: "n3"}},
+			{param: graphNode{Type: "n5"}, result: graphNode{Type: "n4"}},
+			{param: graphNode{Type: "n6"}, result: graphNode{Type: "n1"}},
+			{param: graphNode{Type: "n6"}, result: graphNode{Type: "n5"}},
+		}
+		c.Write(outputPath)
+		defer os.Remove(outputPath)
+
+		actual, _ := ioutil.ReadFile(outputPath)
+		assert.Equal(t, expected, string(actual))
+	})
 }
