@@ -425,8 +425,19 @@ func (c *Container) findAndValidateResults(n *node) (map[key]struct{}, error) {
 	return keys, nil
 }
 
-// Write writes the dependency graph into the file specified in the path
-// argument in DOT format
+// Write writes this Container's DOT-format representation into the file specified by path.
+// The result DOT-format file is a directed graph, with edges directed towards the dependencies of each node.
+// Given,
+//
+//     func(*Foo) *Bar
+//     func(*Bar) *Baz
+//
+// The result graph will be represented as,
+//
+//     digraph G {
+//         *Bar -> *Foo
+//         *Baz -> *Bar
+//     }
 func (c *Container) Write(path string) error {
 	var output bytes.Buffer
 	output.WriteString("digraph G {\n")
